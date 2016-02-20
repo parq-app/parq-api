@@ -6,6 +6,6 @@
         "firebase": "*", 
         "ngeohash": "*",
         "geolib": "*",
-        "bodyParser": "*"
+        "body-parser": "*"
     }
 }
