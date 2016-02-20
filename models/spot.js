@@ -24,6 +24,10 @@ exports.get = function(spotId) {
   });
 }
 
+exports.occupy(spotId) {
+    return firebaseRef.child(spotId).set({"is_occupied": true});
+}
+
 function Spot(userId, addr, title, id) {
   this.id = id;
   this.attributes = {
