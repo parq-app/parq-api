@@ -4,6 +4,7 @@
 	"dependencies": {
 		"express": "*",
 		"firebase": "*", 
-		"geofire": "*",
+		"ngeohash": "*",
+                "geolib": "*"
 	}
 }
