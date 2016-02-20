@@ -17,7 +17,8 @@ router.get('/:id', function(req, res) {
 // Create a new spot
 router.post('/', function(req, res) {
   if (req.body.hasOwnProperty('userId') && req.body.hasOwnProperty('addr') && 
-     req.body.hasOwnProperty('title')) {
+     req.body.hasOwnProperty('title') && req.body.hasOwnProperty('lat') && 
+     req.body.hasOwnProperty('long')) {
      Spot.create(req.body.userId, req.body.addr, req.body.lat, req.body.long, req.body.title).
      then(function(spot) {
       res.json({spot: spot}); 

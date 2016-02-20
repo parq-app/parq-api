@@ -4,11 +4,11 @@ var GeoHash = require('ngeohash');
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
 exports.create = function(userId, addr, lat, long, title) {
-  var spotRef = firebaseRef.push();
   var hash = GeoHash.encode(lat, long);
   var spot = new Spot(userId, addr, hash, title, null);
+  var spotRef = firebaseRef.push(spot.attributes);
 
-  return spotRef.set(spot.attributes).then(function() {
+  return spotRef.then(function() {
     spot.id = spotRef.key();
     return spot;
   });
