@@ -1,10 +1,12 @@
 var Firebase = require('firebase');
+var GeoHash = require('ngeohash');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
-exports.create = function(userId, addr, geohash, title) {
+exports.create = function(userId, addr, lat, long, title) {
   var spotRef = firebaseRef.push();
-  var spot = new Spot(userId, addr, title, null);
+  var hash = GeoHash.encode(lat, long);
+  var spot = new Spot(userId, addr, hash, title, null);
 
   return spotRef.set(spot.attributes).then(function() {
     spot.id = spotRef.key();
@@ -30,7 +32,7 @@ exports.occupy = function(spotId) {
     return firebaseRef.child(spotId).set({"is_occupied": true});
 };
 
-exports.Spot = function Spot(userId, addr, geohash, title, id) {
+function Spot(userId, addr, geohash, title, id) {
   this.id = id;
   this.attributes = {
     userId: userId,
@@ -40,5 +42,5 @@ exports.Spot = function Spot(userId, addr, geohash, title, id) {
     isOccupied: false
   }
 };
-
+exports.Spot = Spot;
 module.exports = exports;
