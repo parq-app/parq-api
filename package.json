@@ -1,10 +1,10 @@
 {
-  "name": "parq-api",
-  "version": "0.0.1",
-  "dependencies": {
-    "body-parser": "*",
-    "express": "*",
-    "firebase": "*",
-    "geofire": "*"
-  }
+    "name": "parq-api",
+    "version": "0.0.1",
+    "dependencies": {
+        "express": "*",
+        "firebase": "*", 
+        "ngeohash": "*",
+        "geolib": "*"
+    }
 }

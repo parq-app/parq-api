@@ -1,5 +1,5 @@
-var express = require('express')
-  , router = express.Router()
+var express = require('express'),
+  router = express.Router()
 
 router.use('/spots', require('./spots'));
 

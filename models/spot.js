@@ -25,8 +25,12 @@ exports.update = function(spotId, attrs) {
   // Check that id is not null
   if (spotId == null) return Promise.reject("Null spot ID");
 
-  return firebaseRef.child(spotId).update(attrs);    
+  return firebaseRef.child(spotId).update(attrs);
 };
+
+exports.occupy = function(spotId) {
+    return firebaseRef.child(spotId).set({"is_occupied": true});
+}
 
 exports.Spot = function Spot(userId, addr, title, id) {
   this.id = id;
