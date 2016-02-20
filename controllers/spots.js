@@ -1,18 +1,29 @@
+"use strict";
+
 var express = require('express')
   , router = express.Router(), 
   Firebase = require('firebase'),
-  GeoFire = require('geofire');
+  GeoFire = require('geofire'),
+  Spot = require('../models/spot');
+
+
+// Sample Spot code:
+//var testSpot = new Spot("userid", "loc", "title");
+//console.log(testSpot);
+//testSpot.update({userId: "userid2"});
+//console.log(testSpot);
+//
+//testSpot.create().then(function() {
+//  console.log(testSpot);
+//  testSpot.update({userId: "userid3", title: "newTitle"});
+//  console.log(testSpot);
+//  testSpot.save().then(function() {
+//    console.log(testSpot);
+//  }, function(error) {});
+//}, function(error) {
+//});
 
 router.get('/', function(req, res) {
-  var firebaseRef = new Firebase("https://parq.firebaseio.com/geo");
-  var geoFire = new GeoFire(firebaseRef);
-  
-  geoFire.set("a_key", [20.0, 10.0]).then(function() {
-    console.log("yay"); 
-    res.send("Stored a location!")
-  }, function(error) {
-    console.log("poop"); 
-  })
 });
 
 module.exports = router
