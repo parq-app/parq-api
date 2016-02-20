@@ -5,6 +5,7 @@
         "express": "*",
         "firebase": "*", 
         "ngeohash": "*",
-        "geolib": "*"
+        "geolib": "*",
+        "bodyParser": "*"
     }
 }
