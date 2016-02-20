@@ -1,16 +1,14 @@
 var express = require('express'),
-  router = express.Router(),
   Firebase = require('firebase'),
-  GeoFire = require('geofire'),
+  router = express.Router(),
   Spot = require('../models/spot');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com");
-var geoFire = new GeoFire(firebaseRef);
 
 // Get a spot
 router.get('/:id', function(req, res) {
   Spot.get(req.params.id).then(function(spot) {
-    res.json({spot: spot});
+    res.status(200).json({spot: spot});
   }).catch(function(error) {
     res.status(500).json({error: error});  
   });
@@ -27,7 +25,7 @@ router.post('/', function(req, res) {
       res.status(500).json({error: error}); 
      });
   } else {
-    return false; /// Not the right way to handle this, need to return promise
+    res.status(400).json({error: "Missing expected body parameter."})
   }
 });
 
@@ -40,4 +38,4 @@ router.put('/:id', function(req, res) {
   });
 })
 
-module.exports = router
+module.exports = router;
