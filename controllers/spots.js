@@ -9,7 +9,9 @@ var geoFire = new GeoFire(firebaseRef);
 
 // Get a spot
 router.get('/:id', function(req, res) {
+  Spot.get(req.params.id).then(function(spot) {
+    res.json({spot: spot});
+  })
 });
-
 
 module.exports = router
