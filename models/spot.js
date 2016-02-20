@@ -1,9 +1,8 @@
-var Firebase = require('firebase'),
-    GeoFire = require('geofire');
+var Firebase = require('firebase');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
-exports.create = function(userId, addr, title) {
+exports.create = function(userId, addr, geohash, title) {
   var spotRef = firebaseRef.push();
   var spot = new Spot(userId, addr, title, null);
 
@@ -24,16 +23,18 @@ exports.get = function(spotId) {
   });
 }
 
-exports.occupy(spotId) {
+exports.occupy = function(spotId) {
     return firebaseRef.child(spotId).set({"is_occupied": true});
-}
+};
 
-function Spot(userId, addr, title, id) {
+function Spot(userId, addr, geohash, title, id) {
   this.id = id;
   this.attributes = {
     userId: userId,
     addr: addr,
-    title: title
+    geohash: geohash,
+    title: title,
+    isOccupied: false
   }
 };
 
