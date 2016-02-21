@@ -9,9 +9,9 @@ var usersRef = new Firebase("https://parq.firebaseio.com/users");
 /* finds the closest spot from list of open locs,
  * remove the loc from the freelist, and mark
  * its spot as occupied. Will return the occupied spotId */
-var occupyNearestSpot = function(locsSnapshot) {
-    var loc = Loc.findNearestLoc(currentLoc, locsSnapshot);
-    return Promise.all([Loc.removeLoc(loc), Spot.occupy(spotId)])
+var occupyNearestSpot = function(currentLoc, locs) {
+    var loc = Loc.findNearestLoc(currentLoc, locs);
+    return Promise.all([Loc.removeLoc(loc), Spot.occupy(loc.spotId)])
         .then(function() {
             return loc.spotId;
         })
@@ -19,11 +19,11 @@ var occupyNearestSpot = function(locsSnapshot) {
 
 /* Returns a reservation that has a new reservationId */
 var pushNewReservation = function(reservation) {
-     var resPromise = reservationsRef.push(reservation);
-     return resPromise.then(function() {
-         reservation.id = resPromise.key();
-         return reservation;
-     });
+    var resPromise = reservationsRef.push(reservation.attributes);
+    return resPromise.then(function() {
+        reservation.id = resPromise.key();
+        return reservation;
+    });
 };
 
 /* Adds the reservation id to both driver and hosts responding lists */
@@ -32,8 +32,8 @@ var addReservationToActive = function(reservation) {
     reservationIdObj[reservation.id] = "true";
 
     return Promise.all([
-        usersRef.child(reservation.driverId).child("activeDriverReservations").set(reservationIdObj),
-        usersRef.child(reservation.hostId).child("activeHostReservations").set(reservationIdObj)
+        usersRef.child(reservation.attributes.driverId).child("activeDriverReservations").set(reservationIdObj),
+        usersRef.child(reservation.attributes.hostId).child("activeHostReservations").set(reservationIdObj)
     ]).then(function() {
         return reservation;
     });
@@ -49,12 +49,13 @@ var addReservationToActive = function(reservation) {
 exports.create = function(driverId, latitude, longitude) {
     var reservation = new Reservation(driverId, latitude, longitude);
     var currentLoc = {"latitude": latitude, "longitude": longitude};
-    return Loc.getAllLocs
-        .then(occupyNearestSpot)
+    return Loc.getAllLocs().then(function(locs) {
+        return occupyNearestSpot(currentLoc, locs);
+    })
         .then(Spot.get)
         .then(function(spot) {
-            reservation.attributes.hostId = spot.userId;
-            reservation.spotId = spot.id;
+            reservation.attributes.hostId = spot.attributes.userId;
+            reservation.attributes.spotId = spot.id;
             return reservation;
         }).then(pushNewReservation)
         .then(addReservationToActive)
