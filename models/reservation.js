@@ -1,51 +1,17 @@
 var Firebase = require('firebase'),
     geohash = require('ngeohash'),
-    geolib = require('geolib'),
-    Spot = require('./spot');
+    Spot = require('./spot'),
+    Loc = require('./loc');
 
 var reservationsRef = new Firebase("https://parq.firebaseio.com/reservations");
-var locsRef = new Firebase("https://parq.firebaseio.com/locs");
 var usersRef = new Firebase("https://parq.firebaseio.com/users");
-
-/* Takes in a latlong and list of locs to find nearest spot */
-var findNearestLoc = function(currentLatLong, locsSnapshot) {
-    var minLoc, minDistance = Number.MAX_VALUE;
-    locsSnapshot.forEach(function(locSnapshot) {
-        var tempLoc = locSnapshotToLoc(locSnapshot);
-        var tempLatLong = geohash.decode(tempLoc.geohash);
-        var tempDistance = geolib.getDistance(tempLoc, currentLatLong);
-        if (tempDistance < minDistance) {
-            minDistance = tempDistance;
-            minLoc = tempLoc;
-        }
-    });
-    return minLoc;
-};
-
-/* Converts a firebase loc to a JS object */
-var locSnapshotToLoc = function(locSnapshot) {
-    return {
-        geohash: locSnapshot.key(),
-        spotId: locSnapshot.val()
-    };
-};
-
-/* Remove the provided loc from the free list */
-exports.removeLoc = function(loc) {
-    return locsRef.child(loc.geohash).remove();
-};
-
-/* Add a new loc to the free list */
-exports.addLoc = function(loc) {
-    return locsRef.child(loc.geohash).set(loc.spotId);
-};
 
 /* finds the closest spot from list of open locs,
  * remove the loc from the freelist, and mark
  * its spot as occupied. Will return the occupied spotId */
 var occupyNearestSpot = function(locsSnapshot) {
-    var loc = findNearestLoc(currentLoc, locsSnapshot);
-    return Promise.all([removeLoc(loc), Spot.occupy(spotId)])
+    var loc = Loc.findNearestLoc(currentLoc, locsSnapshot);
+    return Promise.all([Loc.removeLoc(loc), Spot.occupy(spotId)])
         .then(function() {
             return loc.spotId;
         })
@@ -60,20 +26,18 @@ var pushNewReservation = function(reservation) {
      });
 };
 
+/* Adds the reservation id to both driver and hosts responding lists */
 var addReservationToActive = function(reservation) {
+    var reservationIdObj = {};
+    reservationIdObj[reservation.id] = "true";
+
     return Promise.all([
-        usersRef.child(reservation.driverId).child("activeDriverReservations").set({reservation.id: "true"}),
-        usersRef.child(reservation.hostId).child("activeHostReservations").set({reservation.id: "true"})
+        usersRef.child(reservation.driverId).child("activeDriverReservations").set(reservationIdObj),
+        usersRef.child(reservation.hostId).child("activeHostReservations").set(reservationIdObj)
     ]).then(function() {
         return reservation;
-    })
-};
-
-pushNewReservation({"driverid": "asdf", "userId": "adsf"})
-    .then(addReservationToActive)
-    .then(function(reservation) {
-        console.log(reservation);
     });
+};
 
 /* Promise that returns a populated and locked Reservation */
 /* get all the locs
@@ -85,7 +49,7 @@ pushNewReservation({"driverid": "asdf", "userId": "adsf"})
 exports.create = function(driverId, latitude, longitude) {
     var reservation = new Reservation(driverId, latitude, longitude);
     var currentLoc = {"latitude": latitude, "longitude": longitude};
-    return locsRef.once("value")
+    return Loc.getAllLocs
         .then(occupyNearestSpot)
         .then(Spot.get)
         .then(function(spot) {
