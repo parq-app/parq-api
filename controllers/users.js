@@ -1,14 +1,12 @@
 var express = require('express'),
-  Firebase = require('firebase'),
-  router = express.Router(),
-  User = require('../models/user');
+    router = express.Router(),
+    User = require('../models/user');
 
-var firebaseRef = new Firebase("https://parq.firebaseio.com");
 
 // Get a User
 router.get('/:id', function(req, res) {
   User.get(req.params.id).then(function(user) {
-    res.status(200).json({user: user});
+    res.json({user: user});
   }).catch(function(error) {
     res.status(500).json({error: error}); 
   });
