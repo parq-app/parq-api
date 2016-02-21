@@ -1,5 +1,4 @@
-var Firebase = require('firebase'),
-  GeoFire = require('geofire');
+var Firebase = require('firebase');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/users");
 

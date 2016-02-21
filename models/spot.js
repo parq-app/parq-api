@@ -1,5 +1,6 @@
-var Firebase = require('firebase');
-var GeoHash = require('ngeohash');
+var Firebase = require('firebase'),
+    GeoHash = require('ngeohash'),
+    Loc = require('./loc');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
@@ -10,16 +11,20 @@ exports.create = function(userId, addr, lat, long, title) {
 
   return spotRef.then(function() {
     spot.id = spotRef.key();
-    return spot;
+    return {geohash: spot.attributes.geohash, spotId: spot.id};
+  })
+  .then(Loc.addLoc)
+  .then(function() {
+      return spot;
   });
-}
+};
 
 exports.get = function(spotId) {
   return firebaseRef.child(spotId).once("value").then(function(snapshot) {
     var spotData = snapshot.val();
     return new Spot(spotData.userId, spotData.addr, spotData.title, snapshot.key());
   });
-}
+};
 
 exports.update = function(spotId, attrs) {
   // Check that id is not null
@@ -40,7 +45,7 @@ function Spot(userId, addr, geohash, title, id) {
     geohash: geohash,
     title: title,
     isOccupied: false
-  }
+  };
 };
 exports.Spot = Spot;
 module.exports = exports;
