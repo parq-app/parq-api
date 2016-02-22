@@ -3,5 +3,6 @@ var express = require('express'),
 
 router.use('/spots', require('./spots'));
 router.use('/users', require('./users'));
+router.use('/reservations', require('./reservations'));
 
 module.exports = router;
