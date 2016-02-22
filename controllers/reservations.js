@@ -4,7 +4,7 @@ var express = require('express'),
 
 // Create and reserve a new reservation
 router.post('/', function(req, res) {
-    Reservation.create(req.params.userId, req.params.latitude, req.params.longitude)
+    Reservation.create(req.body.userId, req.body.latitude, req.body.longitude)
         .then(function(reservation) {
             res.json(reservation);
         }).catch(function(error) {
