@@ -33,8 +33,12 @@ exports.update = function(spotId, attrs) {
   return firebaseRef.child(spotId).update(attrs);
 };
 
-exports.occupy = function(spotId) {
-    return firebaseRef.child(spotId).update({"isOccupied": true});
+exports.reserve = function(spotId) {
+    return firebaseRef.child(spotId).update({"isReserved": true});
+};
+
+exports.free = function(spotId) {
+    return firebaseRef.child(spotId).update({"isReserved": false});
 };
 
 function Spot(userId, addr, geohash, title, id) {
@@ -44,7 +48,7 @@ function Spot(userId, addr, geohash, title, id) {
     addr: addr,
     geohash: geohash,
     title: title,
-    isOccupied: false
+    isReserved: false
   };
 };
 exports.Spot = Spot;

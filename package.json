@@ -1,11 +1,14 @@
 {
-    "name": "parq-api",
-    "version": "0.0.1",
-    "dependencies": {
-        "express": "*",
-        "firebase": "*", 
-        "ngeohash": "*",
-        "geolib": "*",
-        "body-parser": "*"
-    }
+  "name": "parq-api",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "*",
+    "firebase": "*",
+    "ngeohash": "*",
+    "geolib": "*",
+    "body-parser": "*"
+  },
+  "devDependencies": {
+    "eslint-config-google": "^0.4.0"
+  }
 }
