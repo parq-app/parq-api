@@ -1,16 +1,8 @@
 var Firebase = require('firebase'),
     GeoHash = require('ngeohash'),
-    geolib = require('geolib');
+    GeoLib = require('geolib');
 
 var locsRef = new Firebase("https://parq.firebaseio.com/locs");
-
-/* Converts a firebase loc to a JS object */
-var locSnapshotToLoc = function(locSnapshot) {
-    return {
-        geohash: locSnapshot.key(),
-        spotId: locSnapshot.val()
-    };
-};
 
 /* Remove the provided loc from the free list */
 exports.removeLoc = function(loc) {
@@ -28,7 +20,7 @@ exports.findNearestLoc = function(currentLatLong, locs) {
     for (var key in locs) {
         var tempLoc = {geohash: key, spotId: locs[key]};
         var tempLatLong = GeoHash.decode(tempLoc.geohash);
-        var tempDistance = geolib.getDistance(tempLatLong, currentLatLong);
+        var tempDistance = GeoLib.getDistance(tempLatLong, currentLatLong);
         if (tempDistance < minDistance) {
             minDistance = tempDistance;
             minLoc = tempLoc;

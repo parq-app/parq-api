@@ -44,7 +44,7 @@ var addSpots = function() {
             "Kenz's House")
     ]);
 }
-//Reservation.create(users[0].id, chipotle.lat, chipotle.long)
+
 firebaseRef.remove()
     .then(removeUsers).catch(eh)
     .then(addUsers)
@@ -58,4 +58,4 @@ firebaseRef.remove()
         console.log(error);
     }).then(function() {
         process.exit();
-    })
+    });
