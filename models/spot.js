@@ -7,7 +7,7 @@ var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 exports.create = function(userId, addr, lat, long, title) {
   var hash = GeoHash.encode(lat, long);
   // Rating defaults to 0, and for now cost per hour is set to $2.
-  var spot = new Spot(userId, addr, hash, title, 0, 2, null);
+  var spot = new Spot(userId, addr, hash, title, 0, 0, 2, null);
   var spotRef = firebaseRef.push(spot.attributes);
 
   return spotRef.then(function() {
@@ -24,7 +24,7 @@ exports.get = function(spotId) {
   return firebaseRef.child(spotId).once("value").then(function(snapshot) {
     var spotData = snapshot.val();
     return new Spot(spotData.userId, spotData.addr, spotData.geohash,
-                    spotData.title, spotData.rating, spotData.cost_per_hour, snapshot.key());
+                    spotData.title, spotData.rating, spotData.numRatings, spotData.costPerHour, snapshot.key());
   });
 };
 
@@ -43,7 +43,7 @@ exports.free = function(spotId) {
     return firebaseRef.child(spotId).update({"isReserved": false});
 };
 
-function Spot(userId, addr, geohash, title, rating, cost, id) {
+function Spot(userId, addr, geohash, title, rating, numRatings, cost, id) {
   this.id = id;
   this.attributes = {
     userId: userId,
@@ -52,7 +52,8 @@ function Spot(userId, addr, geohash, title, rating, cost, id) {
     title: title,
     isReserved: false,
     rating: rating,
-    cost_per_hour: cost 
+    numRatings: numRatings,
+    costPerHour: cost 
   };
 };
 exports.Spot = Spot;
