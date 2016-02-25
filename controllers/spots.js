@@ -5,7 +5,7 @@ var Spot = require('../models/spot');
 // Get a spot by id
 router.get('/:id', function(req, res) {
   Spot.get(req.params.id).then(function(spot) {
-    res.status(200).json({spot: spot});
+    res.status(200).json(spot);
   }).catch(function(error) {
     res.status(500).json({error: error});
   });
@@ -18,7 +18,7 @@ router.post('/', function(req, res) {
      req.body.hasOwnProperty('long')) {
     Spot.create(req.body.userId, req.body.addr, req.body.lat, req.body.long, req.body.title)
      .then(function(spot) {
-       res.status(201).json({spot: spot});
+       res.status(201).json(spot);
      }).catch(function(error) {
        res.status(500).json({error: error});
      });

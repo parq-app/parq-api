@@ -5,7 +5,7 @@ var User = require('../models/user');
 // Get a user by id
 router.get('/:id', function(req, res) {
   User.get(req.params.id).then(function(user) {
-    res.status(200).json({user: user});
+    res.status(200).json(user);
   }).catch(function(error) {
     res.status(500).json({error: error});
   });
@@ -15,7 +15,7 @@ router.get('/:id', function(req, res) {
 router.post('/', function(req, res) {
   if (req.body.hasOwnProperty('email') && req.body.hasOwnProperty('password')) {
     User.create(req.body.email, req.body.password).then(function(user) {
-      res.status(201).json({user: user});
+      res.status(201).json(user);
     }).catch(function(error) {
       res.status(500).json({error: error});
     });
