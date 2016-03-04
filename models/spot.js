@@ -43,6 +43,29 @@ exports.free = function(spotId) {
     return firebaseRef.child(spotId).update({"isReserved": false});
 };
 
+exports.updateRating = function(spotId, rating) {
+  newRating = parseFloat(rating);
+  return firebaseRef.child(spotId).transaction(function(currentSpot) {
+    // Data can be null here because of the way transactions sync w/ local data. 
+    if (currentSpot === null) {
+      return { rating: rating, numRatings: 1 }; 
+    }
+
+    oldRating = parseFloat(currentSpot.rating);
+    numRatings = parseInt(currentSpot.numRatings);
+    // Calculate new rating:
+    // Multiply current rating by number of raters to get sum of all ratings 
+    var ratingSum = oldRating * numRatings;
+
+    // Add the new rating and then divide by the old number of ratings + 1
+    var updatedRating = (ratingSum + newRating) / (numRatings + 1);
+
+    currentSpot.rating = updatedRating;
+    currentSpot.numRatings = numRatings + 1;
+    return currentSpot;
+  });
+}
+
 function Spot(userId, addr, geohash, title, rating, numRatings, cost, id) {
   this.id = id;
   this.attributes = {

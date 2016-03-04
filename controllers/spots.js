@@ -37,4 +37,17 @@ router.put('/:id', function(req, res) {
   });
 });
 
+// Update the rating of a spot
+router.put('/rating/:id', function(req, res) {
+  if (req.body.hasOwnProperty('rating')) {
+    Spot.updateRating(req.params.id, req.body.rating).then(function(data) {
+      res.status(200).json({rating: data.snapshot.val().rating}); 
+    }).catch(function(error) {
+      res.status(500).json({error: error}); 
+    })
+  } else {
+    res.status(400).json({error: "Missing expected body parameter."});
+  }
+})
+
 module.exports = router;
