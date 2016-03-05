@@ -46,7 +46,7 @@ var addReservationToActive = function(reservation) {
 var setTime = function(reservation, timeType) {
   var timeObj = {};
   timeObj[timeType] = Firebase.ServerValue.TIMESTAMP;
-  return reservationsRef.child(reservation.id).set(timeObj)
+  return reservationsRef.child(reservation.id).update(timeObj)
     .then(function() {
       return reservation;
     });
