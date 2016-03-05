@@ -1,6 +1,6 @@
-var Firebase = require('firebase'),
-    GeoHash = require('ngeohash'),
-    Loc = require('./loc');
+var Firebase = require('firebase');
+var GeoHash = require('ngeohash');
+var Loc = require('./loc');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
@@ -16,7 +16,7 @@ exports.create = function(userId, addr, lat, long, title) {
   })
   .then(Loc.addLoc)
   .then(function() {
-      return spot;
+    return spot;
   });
 };
 
@@ -24,30 +24,32 @@ exports.get = function(spotId) {
   return firebaseRef.child(spotId).once("value").then(function(snapshot) {
     var spotData = snapshot.val();
     return new Spot(spotData.userId, spotData.addr, spotData.geohash,
-                    spotData.title, spotData.rating, spotData.numRatings, spotData.costPerHour, snapshot.key());
+                    spotData.title, spotData.rating, spotData.numRatings,
+                    spotData.costPerHour, snapshot.key());
   });
 };
 
 exports.update = function(spotId, attrs) {
-  if (spotId == null) return Promise.reject("Null spot ID");
-
+  if (spotId === null) {
+    return Promise.reject("Null spot ID");
+  }
   return firebaseRef.child(spotId).update(attrs);
 };
 
 exports.reserve = function(spotId) {
-  return firebaseRef.child(spotId).update({"isReserved": true});
+  return firebaseRef.child(spotId).update({isReserved: true});
 };
 
 exports.free = function(spotId) {
-  return firebaseRef.child(spotId).update({"isReserved": false});
+  return firebaseRef.child(spotId).update({isReserved: false});
 };
 
 exports.updateRating = function(spotId, rating) {
-  newRating = parseFloat(rating);
+  var newRating = parseFloat(rating);
   return firebaseRef.child(spotId).transaction(function(currentSpot) {
-    // Data can be null here because of the way transactions sync w/ local data. 
+    // Data can be null here because of the way transactions sync w/ local data.
     if (currentSpot === null) {
-      return { rating: rating, numRatings: 1 }; 
+      return {rating: rating, numRatings: 1};
     }
 
     oldRating = parseFloat(currentSpot.rating);

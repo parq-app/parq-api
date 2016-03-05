@@ -14,7 +14,7 @@ router.get('/:id', function(req, res) {
 // Create a new user
 router.post('/', function(req, res) {
   if (!req.body.hasOwnProperty('email') || !req.body.hasOwnProperty('password')) {
-    res.status(400).json({error: "Missing expected body parameter."})
+    res.status(400).json({error: "Missing expected body parameter."});
     return;
   }
 

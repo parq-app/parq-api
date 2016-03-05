@@ -20,7 +20,8 @@ router.post('/', function(req, res) {
     return;
   }
 
-  Spot.create(req.body.userId, req.body.addr, req.body.lat, req.body.long, req.body.title)
+  Spot.create(req.body.userId, req.body.addr, req.body.lat,
+              req.body.long, req.body.title)
     .then(function(spot) {
       res.status(201).json(spot);
     }).catch(function(error) {
@@ -41,13 +42,13 @@ router.put('/:id', function(req, res) {
 router.put('/rating/:id', function(req, res) {
   if (req.body.hasOwnProperty('rating')) {
     Spot.updateRating(req.params.id, req.body.rating).then(function(data) {
-      res.status(200).json({rating: data.snapshot.val().rating}); 
+      res.status(200).json({rating: data.snapshot.val().rating});
     }).catch(function(error) {
-      res.status(500).json({error: error}); 
-    })
+      res.status(500).json({error: error});
+    });
   } else {
     res.status(400).json({error: "Missing expected body parameter."});
   }
-})
+});
 
 module.exports = router;
