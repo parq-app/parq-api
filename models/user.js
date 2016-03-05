@@ -26,7 +26,6 @@ exports.update = function(id, attrs) {
   return firebaseRef.child(id).update(attrs);
 }
 
-
 function User(email, id) {
   this.id = id;
   this.attributes = {

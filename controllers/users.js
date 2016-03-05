@@ -13,15 +13,16 @@ router.get('/:id', function(req, res) {
 
 // Create a new user
 router.post('/', function(req, res) {
-  if (req.body.hasOwnProperty('email') && req.body.hasOwnProperty('password')) {
-    User.create(req.body.email, req.body.password).then(function(user) {
-      res.status(201).json(user);
-    }).catch(function(error) {
-      res.status(500).json({error: error});
-    });
-  } else {
+  if (!req.body.hasOwnProperty('email') || !req.body.hasOwnProperty('password')) {
     res.status(400).json({error: "Missing expected body parameter."})
+    return;
   }
+
+  User.create(req.body.email, req.body.password).then(function(user) {
+    res.status(201).json(user);
+  }).catch(function(error) {
+    res.status(500).json({error: error});
+  });
 });
 
 // Update a user
