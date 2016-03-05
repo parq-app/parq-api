@@ -39,7 +39,7 @@ var addSpots = function() {
   ]);
 };
 
-firebaseRef.remove()
+firebaseRef.remove().catch()
   .then(removeUsers)
   .then(addUsers)
   .then(function(results) {

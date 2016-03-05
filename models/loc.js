@@ -1,6 +1,7 @@
 var Firebase = require('firebase'),
     GeoHash = require('ngeohash'),
     GeoLib = require('geolib');
+  
 
 var locsRef = new Firebase("https://parq.firebaseio.com/locs");
 
@@ -32,6 +33,9 @@ exports.findNearestLoc = function(currentLatLong, locs) {
 /* Returns a snapshot of the free locs */
 exports.getAllLocs = function() {
     return locsRef.once("value").then(function(snapshot) {
+      if (!snapshot.exists()) {
+        throw new Error("No locations found");
+      }
         return snapshot.val();
     })
 };
