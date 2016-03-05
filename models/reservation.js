@@ -126,11 +126,15 @@ exports.occupy = function(reservationId) {
 /* Change reservation status, remove from both of the active lists */
 exports.finish = function(reservationId) {
   return exports.updateStatus(reservationId, 'finished')
-    .then(setEndTime)
     .then(function(reservation) {
       return Promise.all([
+        setEndTime(reservation),
         removeReservationFromActive(reservation),
-        Spot.free(reservation.attributes.spotId)
+        Spot.free(reservation.attributes.spotId),
+        Loc.addLoc({
+          geohash: reservation.attributes.geohash,
+          spotId: reservation.attributes.spotId
+        })
       ]);
     });
 };
