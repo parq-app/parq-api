@@ -40,8 +40,15 @@ exports.reserve = function(spotId) {
   return firebaseRef.child(spotId).update({isReserved: true});
 };
 
+exports.addReservationId = function(spotId, reservationId) {
+  return firebaseRef.child(spotId).update({reservationId: reservationId});
+};
+
 exports.free = function(spotId) {
-  return firebaseRef.child(spotId).update({isReserved: false});
+  return firebaseRef.child(spotId).update({isReserved: false})
+    .then(function() {
+      return firebaseRef.child(spotId).child("reservationId").remove();
+    });
 };
 
 exports.updateRating = function(spotId, rating) {
@@ -52,10 +59,10 @@ exports.updateRating = function(spotId, rating) {
       return {rating: rating, numRatings: 1};
     }
 
-    oldRating = parseFloat(currentSpot.rating);
-    numRatings = parseInt(currentSpot.numRatings);
+    var oldRating = parseFloat(currentSpot.rating);
+    var numRatings = parseInt(currentSpot.numRatings, 10);
     // Calculate new rating:
-    // Multiply current rating by number of raters to get sum of all ratings 
+    // Multiply current rating by number of raters to get sum of all ratings
     var ratingSum = oldRating * numRatings;
 
     // Add the new rating and then divide by the old number of ratings + 1
@@ -65,7 +72,7 @@ exports.updateRating = function(spotId, rating) {
     currentSpot.numRatings = numRatings + 1;
     return currentSpot;
   });
-}
+};
 
 function Spot(userId, addr, geohash, title, rating, numRatings, cost, id) {
   this.id = id;
@@ -75,10 +82,12 @@ function Spot(userId, addr, geohash, title, rating, numRatings, cost, id) {
     geohash: geohash,
     title: title,
     isReserved: false,
+    reservationId: null,
     rating: rating,
     numRatings: numRatings,
     costPerHour: cost
   };
-};
+}
+
 exports.Spot = Spot;
 module.exports = exports;

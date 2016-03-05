@@ -108,7 +108,13 @@ exports.reserve = function(driverId, latitude, longitude) {
       reservation.attributes.spotId = spot.id;
       return reservation;
     })
-    .then(createNewReservation);
+    .then(createNewReservation)
+    .then(function(reservation) {
+      return Spot.addReservationId(reservation.attributes.spotId, reservation.id);
+    })
+    .then(function() {
+      return reservation;
+    });
 };
 
 /* Change status to navigating */
