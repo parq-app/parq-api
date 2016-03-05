@@ -4,9 +4,12 @@
   "dependencies": {
     "express": "*",
     "firebase": "*",
+    "firebase-server": "*",
     "ngeohash": "*",
     "geolib": "*",
-    "body-parser": "*"
+    "body-parser": "*",
+    "mocha": "*",
+    "chai": "*"
   },
   "devDependencies": {
     "eslint-config-google": "^0.4.0"
