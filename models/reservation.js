@@ -10,7 +10,7 @@ var usersRef = new Firebase('https://parq.firebaseio.com/users');
 /* finds the closest spot from list of open locs,
  * remove the loc from the freelist, and mark
  * its spot as occupied. Will return the occupied spotId */
-var reserveNearestSpot = function(currentLatLong, locs) {
+var reserveNearestSpotId = function(currentLatLong, locs) {
   var loc = Loc.findNearestLoc(currentLatLong, locs);
   return Promise.all([Loc.removeLoc(loc), Spot.reserve(loc.spotId)])
     .then(function() {
@@ -43,9 +43,25 @@ var addReservationToActive = function(reservation) {
   });
 };
 
+var setTime = function(reservation, timeType) {
+  var timeObj = {};
+  timeObj[timeType] = Firebase.ServerValue.TIMESTAMP;
+  return reservationsRef.child(reservation.id).update(timeObj)
+    .then(function() {
+      return reservation;
+    });
+};
+
+var setEndTime = function(reservation) {
+  return setTime(reservation, "timeEnd");
+};
+
+var setStartTime = function(reservation) {
+  return setTime(reservation, "timeStart");
+};
+
 /* Removes the reservation id from both driver and hosts corresponding lists */
 var removeReservationFromActive = function(reservation) {
-  console.log(reservation);
   var resId = reservation.id;
   var driverId = reservation.attributes.driverId;
   var hostId = reservation.attributes.hostId;
@@ -80,7 +96,7 @@ exports.reserve = function(driverId, latitude, longitude) {
   var currentLatLong = {latitude: latitude, longitude: longitude};
   return Loc.getAllLocs()
     .then(function(locs) {
-      return reserveNearestSpot(currentLatLong, locs);
+      return reserveNearestSpotId(currentLatLong, locs);
     })
     .then(Spot.get)
     .then(function(spot) {
@@ -103,12 +119,14 @@ exports.accept = function(reservationId) {
 /* Change status to occupied and add to active lists */
 exports.occupy = function(reservationId) {
   return exports.updateStatus(reservationId, 'occupied')
+    .then(setStartTime)
     .then(addReservationToActive);
 };
 
 /* Change reservation status, remove from both of the active lists */
 exports.finish = function(reservationId) {
   return exports.updateStatus(reservationId, 'finished')
+    .then(setEndTime)
     .then(function(reservation) {
       return Promise.all([
         removeReservationFromActive(reservation),
@@ -143,7 +161,8 @@ function Reservation(driverId, latitude, longitude) {
     hostId: null,
     spotId: null,
     status: 'reserved',
-    timeStart: Firebase.ServerValue.TIMESTAMP,
+    timeRequested: Firebase.ServerValue.TIMESTAMP,
+    timeStart: null,
     timeEnd: null,
     latitude: null,
     longitude: null,
