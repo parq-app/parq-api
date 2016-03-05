@@ -13,18 +13,19 @@ router.get('/:id', function(req, res) {
 
 // Create a new spot
 router.post('/', function(req, res) {
-  if (req.body.hasOwnProperty('userId') && req.body.hasOwnProperty('addr') &&
-     req.body.hasOwnProperty('title') && req.body.hasOwnProperty('lat') &&
-     req.body.hasOwnProperty('long')) {
-    Spot.create(req.body.userId, req.body.addr, req.body.lat, req.body.long, req.body.title)
-     .then(function(spot) {
-       res.status(201).json(spot);
-     }).catch(function(error) {
-       res.status(500).json({error: error});
-     });
-  } else {
+  if (!req.body.hasOwnProperty('userId') || !req.body.hasOwnProperty('addr') ||
+     !req.body.hasOwnProperty('title') || !req.body.hasOwnProperty('lat') ||
+     !req.body.hasOwnProperty('long')) {
     res.status(400).json({error: "Missing expected body parameter."});
+    return;
   }
+
+  Spot.create(req.body.userId, req.body.addr, req.body.lat, req.body.long, req.body.title)
+    .then(function(spot) {
+      res.status(201).json(spot);
+    }).catch(function(error) {
+      res.status(500).json({error: error});
+    });
 });
 
 // Update a spot

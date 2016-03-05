@@ -13,6 +13,12 @@ router.get("/:id", function(req, res) {
 
 // Create and reserve a new reservation
 router.post('/', function(req, res) {
+  if (!req.body.hasOwnProperty('userId') || !req.body.hasOwnProperty('latitude') ||
+     !req.body.hasOwnProperty('longitude')) {
+    res.status(400).json({error: "Missing expected body parameter."});
+    return;
+  }
+
   Reservation.reserve(req.body.userId, req.body.latitude, req.body.longitude)
     .then(function(reservation) {
       res.status(201).json(reservation);

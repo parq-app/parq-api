@@ -29,18 +29,17 @@ exports.get = function(spotId) {
 };
 
 exports.update = function(spotId, attrs) {
-  // Check that id is not null
   if (spotId == null) return Promise.reject("Null spot ID");
 
   return firebaseRef.child(spotId).update(attrs);
 };
 
 exports.reserve = function(spotId) {
-    return firebaseRef.child(spotId).update({"isReserved": true});
+  return firebaseRef.child(spotId).update({"isReserved": true});
 };
 
 exports.free = function(spotId) {
-    return firebaseRef.child(spotId).update({"isReserved": false});
+  return firebaseRef.child(spotId).update({"isReserved": false});
 };
 
 exports.updateRating = function(spotId, rating) {
@@ -76,7 +75,7 @@ function Spot(userId, addr, geohash, title, rating, numRatings, cost, id) {
     isReserved: false,
     rating: rating,
     numRatings: numRatings,
-    costPerHour: cost 
+    costPerHour: cost
   };
 };
 exports.Spot = Spot;

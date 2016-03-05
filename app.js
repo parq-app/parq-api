@@ -3,7 +3,7 @@ var app = express();
 var bodyParser = require('body-parser');
 
 app.get('/', function (req, res) {
-    res.send('This is the official parq API. For more information, visit https://github.com/parq-app/parq-api');
+    res.send('This is the official <i>parq</i> API. For more information, visit <a href=https://github.com/parq-app/parq-api>our GitHub</a>');
 });
 
 app.use(bodyParser.json());
