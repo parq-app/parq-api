@@ -23,9 +23,14 @@ exports.create = function(userId, addr, lat, long, title) {
 exports.get = function(spotId) {
   return firebaseRef.child(spotId).once("value").then(function(snapshot) {
     var spotData = snapshot.val();
-    return new Spot(spotData.userId, spotData.addr, spotData.geohash,
+    var spot = new Spot(spotData.userId, spotData.addr, spotData.geohash,
                     spotData.title, spotData.rating, spotData.numRatings,
                     spotData.costPerHour, snapshot.key());
+
+    // easiest way to get values from firebase, look into cleaning up ctor
+    spot.id = snapshot.key();
+    spot.attributes = snapshot.val();
+    return spot;
   });
 };
 
