@@ -142,6 +142,9 @@ exports.finish = function(reservationId) {
           spotId: reservation.attributes.spotId
         })
       ]);
+    })
+    .then(function() {
+      return exports.get(reservationId);
     });
 };
 
