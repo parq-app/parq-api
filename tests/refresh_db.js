@@ -13,13 +13,13 @@ var users = [
 var removeUsers = function() {
   return Promise.all(users.map(function(user) {
     return firebaseRef.removeUser({email: user.email, password: user.password});
-  }));
+  })).catch(function(error) {});
 };
 
 var addUsers = function() {
   return Promise.all(users.map(function(user) {
     return User.create(user.email, user.password);
-  }));
+  })).catch(function(error) {});
 };
 
 var addSpots = function() {
