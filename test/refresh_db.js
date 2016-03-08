@@ -1,4 +1,4 @@
-var Firebase = require('Firebase');
+var Firebase = require('firebase');
 var Spot = require('../models/spot');
 var User = require('../models/user');
 
