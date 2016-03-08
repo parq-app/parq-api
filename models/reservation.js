@@ -30,14 +30,14 @@ var createNewReservation = function(reservation) {
 /* Adds the reservation id to both driver and hosts corresponding lists */
 var addReservationToActive = function(reservation) {
   var resObj = {};
-  resObj[reservation.id] = 'true';
+  resObj[reservation.id] = {reservationId: reservation.id};
 
   var driverId = reservation.attributes.driverId;
   var hostId = reservation.attributes.hostId;
 
   return Promise.all([
-    usersRef.child(driverId).child('activeDriverReservations').set(resObj),
-    usersRef.child(hostId).child('activeHostReservations').set(resObj)
+    usersRef.child(driverId).child('activeDriverReservations').update(resObj),
+    usersRef.child(hostId).child('activeHostReservations').update(resObj)
   ]).then(function() {
     return reservation;
   });

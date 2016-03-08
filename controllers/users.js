@@ -11,6 +11,14 @@ router.get('/:id', function(req, res) {
   });
 });
 
+router.get('/:id/spots', function(req, res) {
+  User.getSpots(req.params.id).then(function(spots) {
+    res.status(200).json(spots);
+  }).catch(function(error) {
+    res.status(500).json({error: error});
+  });
+});
+
 // Create a new user
 router.post('/', function(req, res) {
   if (!req.body.hasOwnProperty('email') || !req.body.hasOwnProperty('password')) {
