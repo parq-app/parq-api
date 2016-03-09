@@ -1,6 +1,14 @@
 var Firebase = require('firebase');
+var Spot = require('./spot');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/users");
+
+exports.addHostSpot = function(userId, spotId) {
+  var spotObj = {};
+  spotObj[spotId] = {spotId: spotId};
+
+  return firebaseRef.child(userId).child('spots').update(spotObj);
+};
 
 exports.create = function(email, password) {
   var credentials = {email: email, password: password};
@@ -23,6 +31,20 @@ exports.get = function(id) {
     user.attributes = snapshot.val();
     return user;
   });
+};
+
+exports.getSpots = function(id) {
+  return firebaseRef.child(id).child("spots").once("value")
+    .then(function(snapshot) {
+      var spotIdsObj = snapshot.val();
+      var spotIdArr = Object.keys(spotIdsObj).map(function(spotId) {
+        return spotIdsObj[spotId].spotId;
+      });
+
+      return Promise.all(spotIdArr.map(function(spotId) {
+        return Spot.get(spotId);
+      }));
+    });
 };
 
 exports.update = function(id, attrs) {

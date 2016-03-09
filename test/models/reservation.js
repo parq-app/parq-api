@@ -90,7 +90,9 @@ describe('Reservation', function() {
       User.get(reservation.attributes.hostId)
         .then(function(user) {
           assert(user.attributes.hasOwnProperty('activeHostReservations'));
-          assert(user.attributes.activeHostReservations.hasOwnProperty(reservation.id));
+          var hostIdRes = Object.keys(user.attributes.activeHostReservations)[0];
+          var resId = user.attributes.activeHostReservations[hostIdRes].reservationId;
+          assert.equal(resId, reservation.id);
           done();
         }).catch(function(err) {
           done(err);
@@ -101,7 +103,9 @@ describe('Reservation', function() {
       User.get(reservation.attributes.driverId)
         .then(function(user) {
           assert(user.attributes.hasOwnProperty('activeDriverReservations'));
-          assert(user.attributes.activeDriverReservations.hasOwnProperty(reservation.id));
+          var driverIdRes = Object.keys(user.attributes.activeDriverReservations)[0];
+          var resId = user.attributes.activeDriverReservations[driverIdRes].reservationId;
+          assert.equal(resId, reservation.id);
           done();
         }).catch(function(err) {
           done(err);

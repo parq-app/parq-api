@@ -1,6 +1,7 @@
 var Firebase = require('firebase');
 var GeoHash = require('ngeohash');
 var Loc = require('./loc');
+var User = require('./user');
 
 var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
 
@@ -15,6 +16,9 @@ exports.create = function(userId, addr, lat, long, title) {
     return {geohash: spot.attributes.geohash, spotId: spot.id};
   })
   .then(Loc.addLoc)
+  .then(function() {
+    return User.addHostSpot(spot.attributes.userId, spot.id);
+  })
   .then(function() {
     return spot;
   });
