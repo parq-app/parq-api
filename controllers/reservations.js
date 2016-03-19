@@ -27,6 +27,15 @@ router.post('/', function(req, res) {
     });
 });
 
+// Start navigation to spot with given id.
+router.put("/:id/navigating", function(req, res) {
+  Reservation.navigating(req.params.id).then(function(reservation) {
+    res.status(200).json(reservation);
+  }).catch(function(error) {
+    res.status(500).json({error: error});
+  });
+});
+
 // Occupy spot passed in the id
 router.put("/:id/occupy", function(req, res) {
   Reservation.occupy(req.params.id).then(function(reservation) {
