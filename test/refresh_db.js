@@ -5,9 +5,9 @@ var User = require('../models/user');
 var firebaseRef = new Firebase("https://parq.firebaseio.com");
 
 var users = [
-  {email: "mrgrossm@umich.edu", password: "mrgrossm", id: ""},
-  {email: "nickmorg@umich.edu", password: "nickmorg", id: ""},
-  {email: "kenzshelley@umich.edu", password: "kenzshelley", id: ""}
+  {email: "mrgrossm@umich.edu", password: "mrgrossm", id: "", firstName: "Matt", lastName: "Gross Man"},
+  {email: "nickmorg@umich.edu", password: "nickmorg", id: "", firstName: "Nick", lastName: "Mo"},
+  {email: "kenzshelley@gmail.com", password: "p", id: "", firstName: "Kenz", lastName: "Shelley"}
 ];
 
 var removeUsers = function() {
@@ -18,7 +18,7 @@ var removeUsers = function() {
 
 var addUsers = function() {
   return Promise.all(users.map(function(user) {
-    return User.create(user.email, user.password);
+    return User.create(user.email, user.password, user.firstName, user.lastName);
   })).catch(function(error) {});
 };
 
