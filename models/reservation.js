@@ -118,7 +118,7 @@ exports.reserve = function(driverId, latitude, longitude) {
 };
 
 /* Change status to navigating */
-exports.accept = function(reservationId) {
+exports.navigating = function(reservationId) {
   return exports.updateStatus(reservationId, 'navigating');
 };
 
