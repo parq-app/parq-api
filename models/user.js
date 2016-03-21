@@ -10,10 +10,10 @@ exports.addHostSpot = function(userId, spotId) {
   return firebaseRef.child(userId).child('spots').update(spotObj);
 };
 
-exports.create = function(email, password) {
+exports.create = function(email, password, firstName, lastName) {
   var credentials = {email: email, password: password};
   return firebaseRef.createUser(credentials).then(function(userId) {
-    var user = new User(email, userId.uid);
+    var user = new User(email, userId.uid, firstName, lastName);
 
     return firebaseRef.child(userId.uid).set(user.attributes).then(function() {
       return user;
@@ -24,7 +24,8 @@ exports.create = function(email, password) {
 exports.get = function(id) {
   return firebaseRef.child(id).once("value").then(function(snapshot) {
     var userData = snapshot.val();
-    var user = new User(userData.email, snapshot.key());
+    var user = new User(userData.email, snapshot.key(), userData.firstName,
+                        userData.lastName);
 
     // fix ctor to do this basically
     user.id = snapshot.key();
@@ -54,9 +55,11 @@ exports.update = function(id, attrs) {
   return firebaseRef.child(id).update(attrs);
 };
 
-function User(email, id) {
+function User(email, id, firstName, lastName) {
   this.id = id;
   this.attributes = {
-    email: email
+    email: email,
+    firstName: firstName,
+    lastName: lastName
   };
 }
