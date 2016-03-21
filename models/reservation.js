@@ -126,7 +126,11 @@ exports.navigating = function(reservationId) {
 exports.occupy = function(reservationId) {
   return exports.updateStatus(reservationId, 'occupied')
     .then(setStartTime)
-    .then(addReservationToActive);
+    .then(addReservationToActive)
+    .then(function(oldReservation) {
+      // Return the updated resrvation
+      return exports.get(reservationId);  
+    });
 };
 
 /* Change reservation status, remove from both of the active lists */
