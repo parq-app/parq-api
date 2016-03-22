@@ -6,24 +6,30 @@ var firebaseRef = new Firebase('https://parq.firebaseio.com');
 var usersRef = firebaseRef.child("users");
 
 var users = [
-  {email: "mrgrossm@umich.edu", password: "mrgrossm", id: ""},
-  {email: "nickmorg@umich.edu", password: "nickmorg", id: ""},
-  {email: "kenzshelley@umich.edu", password: "kenzshelley", id: ""}
+  {email: "mrgrossm@umich.edu", password: "m", id: "", firstName: "Matt", lastName: "Gross Man"},
+  {email: "nickmorg@umich.edu", password: "n", id: "", firstName: "Nick", lastName: "Mo"},
+  {email: "kenzshelley@gmail.com", password: "p", id: "", firstName: "Kenz", lastName: "Shelley"}
 ];
 
-var removeUsers = function() {
-  return Promise.all(users.map(function(user) {
-    return firebaseRef.removeUser({email: user.email, password: user.password});
-  })).catch(function(err) {});
+// Tries to delete a given user, catching an error if it happens
+exports.removeUser = function(email, password) {
+  return firebaseRef.removeUser({email: email, password: password})
+    .catch(function() {});
 };
 
-var addUsers = function() {
+exports.removeUsers = function() {
   return Promise.all(users.map(function(user) {
-    return User.create(user.email, user.password);
-  })).catch(function(err) {});
+    return exports.removeUser(user.email, user.password);
+  })).catch(function() {});
 };
 
-var addSpots = function() {
+exports.addUsers = function() {
+  return Promise.all(users.map(function(user) {
+    return User.create(user.email, user.password, user.firstName, user.lastName);
+  })).catch(function() {});
+};
+
+exports.addSpots = function() {
   return Promise.all([
     Spot.create(users[0].id,
       "1111 South Forest Ave., Ann Arbor, MI 48104",
@@ -55,13 +61,13 @@ exports.getUsers = function() {
 
 exports.refreshDbWithOneSpotEach = function() {
   return firebaseRef.remove()
-    .then(removeUsers)
-    .then(addUsers)
+    .then(exports.removeUsers)
+    .then(exports.addUsers)
     .then(function(results) {
       for (var i = 0; i < users.length; i++) {
         users[i].id = results[i].id;
       }
     })
-    .then(addSpots)
+    .then(exports.addSpots)
     .then(exports.getUsers);
 };

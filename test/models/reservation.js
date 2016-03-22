@@ -59,7 +59,7 @@ describe('Reservation', function() {
     });
   });
 
-  describe('#occupy()', function() {
+  describe('#accept()', function() {
     var reservation;
     before(refresh);
 
@@ -75,11 +75,11 @@ describe('Reservation', function() {
         });
     });
 
-    it('occupies a new reservation and checks attrs', function(done) {
+    it('accepts a new reservation and checks new status', function(done) {
       Reservation.occupy(reservation.id)
         .then(function(res) {
           reservation = res;
-          assert.equal(reservation.attributes.status, "occupied");
+          assert.equal(reservation.attributes.status, "accepted");
           done();
         }).catch(function(err) {
           done(err);
@@ -90,9 +90,7 @@ describe('Reservation', function() {
       User.get(reservation.attributes.hostId)
         .then(function(user) {
           assert(user.attributes.hasOwnProperty('activeHostReservations'));
-          var hostIdRes = Object.keys(user.attributes.activeHostReservations)[0];
-          var resId = user.attributes.activeHostReservations[hostIdRes].reservationId;
-          assert.equal(resId, reservation.id);
+          assert(user.attributes.activeHostReservations.hasOwnProperty(reservation.id));
           done();
         }).catch(function(err) {
           done(err);
@@ -103,13 +101,51 @@ describe('Reservation', function() {
       User.get(reservation.attributes.driverId)
         .then(function(user) {
           assert(user.attributes.hasOwnProperty('activeDriverReservations'));
-          var driverIdRes = Object.keys(user.attributes.activeDriverReservations)[0];
-          var resId = user.attributes.activeDriverReservations[driverIdRes].reservationId;
-          assert.equal(resId, reservation.id);
+          assert(user.attributes.activeDriverReservations.hasOwnProperty(reservation.id));
           done();
         }).catch(function(err) {
           done(err);
         });
+    });
+  });
+
+  describe('#occupy()', function() {
+    var reservation;
+    before(refresh);
+
+    // sets up an already accepted spot
+    before(function(done) {
+      Reservation.reserve(users[1], chipotle.lat, chipotle.long)
+        .then(function(res) {
+          return Reservation.accept(res.id);
+        })
+        .then(function(res) {
+          reservation = res;
+          done();
+        })
+        .catch(function(err) {
+          done(err);
+        });
+    });
+
+    it('occupies a new reservation and checks status', function(done) {
+      Reservation.occupy(reservation.id)
+        .then(function(res) {
+          reservation = res;
+          assert.equal(reservation.attributes.status, "occupied");
+          done();
+        }).catch(function(err) {
+          done(err);
+        });
+    });
+
+    it('makes sure that the timer has started', function(done) {
+      try {
+        assert(reservation.attributes.hasOwnProperty('timeStart'));
+        done();
+      } catch (e) {
+        done(e);
+      }
     });
   });
 
@@ -120,6 +156,9 @@ describe('Reservation', function() {
     // sets up an already occupied reservation
     before(function(done) {
       Reservation.reserve(users[2], chipotle.lat, chipotle.long)
+        .then(function(res) {
+          return Reservation.accept(res.id);
+        })
         .then(function(res) {
           return Reservation.occupy(res.id);
         })
@@ -137,7 +176,6 @@ describe('Reservation', function() {
         .then(function(res) {
           reservation = res;
           assert.equal(reservation.attributes.status, 'finished');
-          assert(!reservation.attributes.reservationId);
           done();
         }).catch(function(err) {
           done(err);
@@ -171,6 +209,53 @@ describe('Reservation', function() {
           done();
         }).catch(function(error) {
           done(error);
+        });
+    });
+  });
+
+  describe('#review()', function() {
+    var reservation;
+    before(refresh);
+
+    // sets up an already occupied reservation
+    before(function(done) {
+      Reservation.reserve(users[2], chipotle.lat, chipotle.long)
+        .then(function(res) {
+          return Reservation.accept(res.id);
+        })
+        .then(function(res) {
+          return Reservation.occupy(res.id);
+        })
+        .then(function(res) {
+          return Reservation.finish(res.id);
+        })
+        .then(function(res) {
+          reservation = res;
+          done();
+        })
+        .catch(function(err) {
+          done(err);
+        });
+    });
+
+    it('checks reviewed status on reservation', function(done) {
+      Reservation.finish(reservation.id)
+        .then(function(res) {
+          reservation = res;
+          assert.equal(reservation.attributes.status, 'reviewed');
+          done();
+        }).catch(function(err) {
+          done(err);
+        });
+    });
+
+    it('makes sure that the reservationId was removed from driver', function(done) {
+      User.get(reservation.attributes.driverId)
+        .then(function(user) {
+          assert(!user.attributes.hasOwnProperty('activeDriverReservations'));
+          done();
+        }).catch(function(err) {
+          done(err);
         });
     });
   });
