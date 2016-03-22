@@ -1,5 +1,6 @@
 var Firebase = require('firebase');
 var GeoHash = require('ngeohash');
+
 var Loc = require('./loc');
 var User = require('./user');
 
@@ -45,18 +46,54 @@ exports.update = function(spotId, attrs) {
   return firebaseRef.child(spotId).update(attrs);
 };
 
-exports.reserve = function(spotId) {
-  return firebaseRef.child(spotId).update({isReserved: true});
+/* finds the closest spot from list of open locs,
+ * remove the loc from the freelist, and mark
+ * its spot as occupied. Will return the occupied spotId */
+exports.reserveNearestSpot = function(currentLatLong, resId) {
+  return Loc.getAllLocs()
+    .then(function(locs) {
+      var loc = Loc.findNearestLoc(currentLatLong, locs);
+      return Promise.all([Loc.removeLoc(loc), exports.reserve(loc.spotId, resId)])
+        .then(function() {
+          return exports.get(loc.spotId);
+        });
+    });
 };
 
-exports.addReservationId = function(spotId, reservationId) {
-  return firebaseRef.child(spotId).update({reservationId: reservationId});
+exports.reserve = function(spotId, reservationId) {
+  return exports.get(spotId)
+    .then(function(spot) {
+      return Promise.all([
+        firebaseRef.child(spotId).update({isReserved: true}),
+        firebaseRef.child(spotId).update({reservationId: reservationId}),
+        Loc.removeLoc({
+          geohash: spot.attributes.geohash,
+          spotId: spot.id
+        })
+      ]);
+    });
 };
 
 exports.free = function(spotId) {
-  return firebaseRef.child(spotId).update({isReserved: false})
+  return exports.get(spotId)
+    .then(function(spot) {
+      return Promise.all([
+        firebaseRef.child(spotId).update({isReserved: false}),
+        firebaseRef.child(spotId).child("reservationId").remove(),
+        Loc.addLoc({
+          geohash: spot.attributes.geohash,
+          spotId: spot.id
+        })
+      ]);
+    });
+};
+
+exports.review = function(spotId, resId, rating, comment) {
+  var reviewObj = {};
+  reviewObj[resId] = {rating: rating, comment: comment};
+  return exports.updateRating(spotId, rating)
     .then(function() {
-      return firebaseRef.child(spotId).child("reservationId").remove();
+      return firebaseRef.child(spotId).child("reviews").update(reviewObj);
     });
 };
 
@@ -65,7 +102,8 @@ exports.updateRating = function(spotId, rating) {
   return firebaseRef.child(spotId).transaction(function(currentSpot) {
     // Data can be null here because of the way transactions sync w/ local data.
     if (currentSpot === null) {
-      return {rating: rating, numRatings: 1};
+      // weird workaround to give transaction() a default local value
+      return new Spot(0, 0, 0, 0, 0, 0, 0, 0).attributes;
     }
 
     var oldRating = parseFloat(currentSpot.rating);

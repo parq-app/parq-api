@@ -28,8 +28,8 @@ router.post('/', function(req, res) {
 });
 
 // Start navigation to spot with given id.
-router.put("/:id/navigating", function(req, res) {
-  Reservation.navigating(req.params.id).then(function(reservation) {
+router.put("/:id/accept", function(req, res) {
+  Reservation.accept(req.params.id).then(function(reservation) {
     res.status(200).json(reservation);
   }).catch(function(error) {
     res.status(500).json({error: error});
@@ -52,6 +52,22 @@ router.put("/:id/finish", function(req, res) {
   }).catch(function(error) {
     res.status(500).json({error: error});
   });
+});
+
+// Review spot occupation passed in the id
+router.put("/:id/review", function(req, res) {
+  if (!req.body.hasOwnProperty('id') || !req.body.hasOwnProperty('rating') ||
+     !req.body.hasOwnProperty('comment')) {
+    res.status(400).json({error: "Missing expected body parameter."});
+    return;
+  }
+
+  Reservation.review(req.body.id, req.body.rating, req.body.comment)
+    .then(function(reservation) {
+      res.status(201).json(reservation);
+    }).catch(function(error) {
+      res.status(500).json({error: error});
+    });
 });
 
 module.exports = router;

@@ -1,5 +1,4 @@
 var assert = require('assert');
-
 var Helpers = require('../helpers');
 
 var Reservation = require('../../models/reservation');
@@ -76,7 +75,7 @@ describe('Reservation', function() {
     });
 
     it('accepts a new reservation and checks new status', function(done) {
-      Reservation.occupy(reservation.id)
+      Reservation.accept(reservation.id)
         .then(function(res) {
           reservation = res;
           assert.equal(reservation.attributes.status, "accepted");
@@ -192,16 +191,6 @@ describe('Reservation', function() {
         });
     });
 
-    it('makes sure that the reservationId was removed from driver', function(done) {
-      User.get(reservation.attributes.driverId)
-        .then(function(user) {
-          assert(!user.attributes.hasOwnProperty('activeDriverReservations'));
-          done();
-        }).catch(function(err) {
-          done(err);
-        });
-    });
-
     it('checks that the reserved loc is in the free list', function(done) {
       Loc.getAllLocs()
         .then(function(locs) {
@@ -239,7 +228,7 @@ describe('Reservation', function() {
     });
 
     it('checks reviewed status on reservation', function(done) {
-      Reservation.finish(reservation.id)
+      Reservation.review(reservation.id, 3.5, "sux")
         .then(function(res) {
           reservation = res;
           assert.equal(reservation.attributes.status, 'reviewed');

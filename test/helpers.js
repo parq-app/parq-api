@@ -8,7 +8,7 @@ var usersRef = firebaseRef.child("users");
 var users = [
   {email: "mrgrossm@umich.edu", password: "m", id: "", firstName: "Matt", lastName: "Gross Man"},
   {email: "nickmorg@umich.edu", password: "n", id: "", firstName: "Nick", lastName: "Mo"},
-  {email: "kenzshelley@gmail.com", password: "p", id: "", firstName: "Kenz", lastName: "Shelley"}
+  {email: "kenzshelley@gmail.com", password: "p", id: "", firstName: "Kenz", lastName: "Smelley"}
 ];
 
 // Tries to delete a given user, catching an error if it happens
