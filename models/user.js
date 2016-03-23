@@ -1,28 +1,72 @@
 var Firebase = require('firebase');
 var Spot = require('./spot');
 
-var firebaseRef = new Firebase("https://parq.firebaseio.com/users");
+var usersRef = new Firebase("https://parq.firebaseio.com/users");
+
+exports.removeReservationFromActive = function(reservation, userType) {
+  var resId = reservation.id;
+  var userId;
+  var listName;
+
+  if (userType === "host") {
+    userId = reservation.attributes.hostId;
+    listName = "activeHostReservations";
+  } else {
+    userId = reservation.attributes.driverId;
+    listName = "activeDriverReservations";
+  }
+
+  return usersRef.child(userId).child(listName).child(resId).remove()
+    .then(function() {
+      return reservation;
+    });
+};
+/* Removes the reservation id from both driver and hosts corresponding lists */
+exports.removeReservationFromHostActive = function(reservation) {
+  return exports.removeReservationFromActive(reservation, "host");
+};
+
+/* Removes the reservation id from both driver and hosts corresponding lists */
+exports.removeReservationFromDriverActive = function(reservation) {
+  return exports.removeReservationFromActive(reservation, "driver");
+};
+
+/* Adds the reservation id to both driver and hosts corresponding lists */
+exports.addReservationToActive = function(reservation) {
+  var resObj = {};
+  resObj[reservation.id] = reservation.id;
+
+  var driverId = reservation.attributes.driverId;
+  var hostId = reservation.attributes.hostId;
+
+  return Promise.all([
+    usersRef.child(driverId).child('activeDriverReservations').update(resObj),
+    usersRef.child(hostId).child('activeHostReservations').update(resObj)
+  ]).then(function() {
+    return reservation;
+  });
+};
 
 exports.addHostSpot = function(userId, spotId) {
   var spotObj = {};
-  spotObj[spotId] = {spotId: spotId};
+  spotObj[spotId] = spotId;
 
-  return firebaseRef.child(userId).child('spots').update(spotObj);
+  return usersRef.child(userId).child('spots').update(spotObj);
 };
 
 exports.create = function(email, password, firstName, lastName) {
   var credentials = {email: email, password: password};
-  return firebaseRef.createUser(credentials).then(function(userId) {
+  return usersRef.createUser(credentials).then(function(userId) {
     var user = new User(email, userId.uid, firstName, lastName);
 
-    return firebaseRef.child(userId.uid).set(user.attributes).then(function() {
+    return usersRef.child(userId.uid).set(user.attributes).then(function() {
       return user;
     });
   });
 };
 
 exports.get = function(id) {
-  return firebaseRef.child(id).once("value").then(function(snapshot) {
+  return usersRef.child(id).once("value").then(function(snapshot) {
     var userData = snapshot.val();
     var user = new User(userData.email, snapshot.key(), userData.firstName,
                         userData.lastName);
@@ -35,13 +79,10 @@ exports.get = function(id) {
 };
 
 exports.getSpots = function(id) {
-  return firebaseRef.child(id).child("spots").once("value")
+  return usersRef.child(id).child("spots").once("value")
     .then(function(snapshot) {
       var spotIdsObj = snapshot.val();
-      var spotIdArr = Object.keys(spotIdsObj).map(function(spotId) {
-        return spotIdsObj[spotId].spotId;
-      });
-
+      var spotIdArr = Object.keys(spotIdsObj);
       return Promise.all(spotIdArr.map(function(spotId) {
         return Spot.get(spotId);
       }));
@@ -52,7 +93,7 @@ exports.update = function(id, attrs) {
   if (id === null) {
     return Promise.reject("Null spot ID");
   }
-  return firebaseRef.child(id).update(attrs);
+  return usersRef.child(id).update(attrs);
 };
 
 function User(email, id, firstName, lastName) {

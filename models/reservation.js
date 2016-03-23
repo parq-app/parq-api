@@ -2,21 +2,9 @@ var Firebase = require('firebase');
 var GeoHash = require('ngeohash');
 
 var Spot = require('./spot');
-var Loc = require('./loc');
+var User = require('./user');
 
 var reservationsRef = new Firebase('https://parq.firebaseio.com/reservations');
-var usersRef = new Firebase('https://parq.firebaseio.com/users');
-
-/* finds the closest spot from list of open locs,
- * remove the loc from the freelist, and mark
- * its spot as occupied. Will return the occupied spotId */
-var reserveNearestSpotId = function(currentLatLong, locs) {
-  var loc = Loc.findNearestLoc(currentLatLong, locs);
-  return Promise.all([Loc.removeLoc(loc), Spot.reserve(loc.spotId)])
-    .then(function() {
-      return loc.spotId;
-    });
-};
 
 /* Returns a reservation that has a new reservationId */
 var createNewReservation = function(reservation) {
@@ -27,28 +15,12 @@ var createNewReservation = function(reservation) {
   });
 };
 
-/* Adds the reservation id to both driver and hosts corresponding lists */
-var addReservationToActive = function(reservation) {
-  var resObj = {};
-  resObj[reservation.id] = {reservationId: reservation.id};
-
-  var driverId = reservation.attributes.driverId;
-  var hostId = reservation.attributes.hostId;
-
-  return Promise.all([
-    usersRef.child(driverId).child('activeDriverReservations').update(resObj),
-    usersRef.child(hostId).child('activeHostReservations').update(resObj)
-  ]).then(function() {
-    return reservation;
-  });
-};
-
 var setTime = function(reservation, timeType) {
   var timeObj = {};
   timeObj[timeType] = Firebase.ServerValue.TIMESTAMP;
   return reservationsRef.child(reservation.id).update(timeObj)
     .then(function() {
-      return reservation;
+      return exports.get(reservation.id);
     });
 };
 
@@ -58,20 +30,6 @@ var setEndTime = function(reservation) {
 
 var setStartTime = function(reservation) {
   return setTime(reservation, "timeStart");
-};
-
-/* Removes the reservation id from both driver and hosts corresponding lists */
-var removeReservationFromActive = function(reservation) {
-  var resId = reservation.id;
-  var driverId = reservation.attributes.driverId;
-  var hostId = reservation.attributes.hostId;
-
-  return Promise.all([
-    usersRef.child(driverId).child('activeDriverReservations').child(resId).remove(),
-    usersRef.child(hostId).child('activeHostReservations').child(resId).remove()
-  ]).then(function() {
-    return reservation;
-  });
 };
 
 /* Change the status of a reservation and return the new obj */
@@ -86,19 +44,18 @@ exports.updateStatus = function(reservationId, status) {
 };
 
 /* Promise that returns a populated and locked Reservation */
-/* get all the locs
- * find the nearest loc
- * remove the loc from the list
- * mark the spotId as taken
+/* create new reservation
+ * reserve nearest spot
+ * return updated reservation
  */
 exports.reserve = function(driverId, latitude, longitude) {
-  var reservation = new Reservation(driverId, latitude, longitude);
+  var reservation = new Reservation(driverId);
   var currentLatLong = {latitude: latitude, longitude: longitude};
-  return Loc.getAllLocs()
-    .then(function(locs) {
-      return reserveNearestSpotId(currentLatLong, locs);
+  return createNewReservation(reservation)
+    .then(function(res) {
+      reservation.id = res.id;
+      return Spot.reserveNearestSpot(currentLatLong, reservation.id);
     })
-    .then(Spot.get)
     .then(function(spot) {
       var spotLatLong = GeoHash.decode(spot.attributes.geohash);
       reservation.attributes.geohash = spot.attributes.geohash;
@@ -106,45 +63,49 @@ exports.reserve = function(driverId, latitude, longitude) {
       reservation.attributes.longitude = spotLatLong.longitude;
       reservation.attributes.hostId = spot.attributes.userId;
       reservation.attributes.spotId = spot.id;
-      return reservation;
-    })
-    .then(createNewReservation)
-    .then(function(reservation) {
-      return Spot.addReservationId(reservation.attributes.spotId, reservation.id);
+      return reservationsRef.child(reservation.id).update(reservation.attributes);
     })
     .then(function() {
-      return reservation;
+      return exports.get(reservation.id);
     });
 };
 
-/* Change status to navigating */
-exports.navigating = function(reservationId) {
-  return exports.updateStatus(reservationId, 'navigating');
+/* Change status to accepted and add to active lists */
+exports.accept = function(reservationId) {
+  return exports.updateStatus(reservationId, exports.ReservationStatusEnum.accepted)
+    .then(User.addReservationToActive);
 };
 
-/* Change status to occupied and add to active lists */
+/* Change status to occupied and start price timer */
 exports.occupy = function(reservationId) {
-  return exports.updateStatus(reservationId, 'occupied')
-    .then(setStartTime)
-    .then(addReservationToActive)
-    .then(function(oldReservation) {
-      // Return the updated resrvation
-      return exports.get(reservationId);  
-    });
+  return exports.updateStatus(reservationId, exports.ReservationStatusEnum.occupied)
+    .then(setStartTime);
 };
 
-/* Change reservation status, remove from both of the active lists */
+/* Change status to finished, remove from driver list,
+ * end occupied time, add to free locs, and modify Spot */
 exports.finish = function(reservationId) {
-  return exports.updateStatus(reservationId, 'finished')
+  return exports.updateStatus(reservationId, exports.ReservationStatusEnum.finished)
     .then(function(reservation) {
       return Promise.all([
         setEndTime(reservation),
-        removeReservationFromActive(reservation),
-        Spot.free(reservation.attributes.spotId),
-        Loc.addLoc({
-          geohash: reservation.attributes.geohash,
-          spotId: reservation.attributes.spotId
-        })
+        User.removeReservationFromHostActive(reservation),
+        Spot.free(reservation.attributes.spotId)
+      ]);
+    })
+    .then(function() {
+      return exports.get(reservationId);
+    });
+};
+
+exports.review = function(reservationId, rating, comment) {
+  var reservation;
+  return exports.updateStatus(reservationId, exports.ReservationStatusEnum.reviewed)
+    .then(function(res) {
+      reservation = res;
+      return Promise.all([
+        Spot.review(reservation.attributes.spotId, reservationId, rating, comment),
+        User.removeReservationFromDriverActive(reservation)
       ]);
     })
     .then(function() {
@@ -164,14 +125,15 @@ exports.get = function(reservationId) {
 
 exports.ReservationStatusEnum = {
   reserved: 'reserved',
-  navigating: 'navigating',
+  accepted: 'accepted',
   occupied: 'occupied',
   finished: 'finished',
+  reviewed: 'reviewed',
   cancelled: 'cancelled'
 };
 
 /* Reservation constructor function */
-function Reservation(driverId, latitude, longitude) {
+function Reservation(driverId) {
   this.id = null;
   this.attributes = {
     driverId: driverId,
@@ -183,6 +145,6 @@ function Reservation(driverId, latitude, longitude) {
     timeEnd: null,
     latitude: null,
     longitude: null,
-    geohash: GeoHash.encode(latitude, longitude)
+    geohash: null
   };
 }
