@@ -56,13 +56,13 @@ router.put("/:id/finish", function(req, res) {
 
 // Review spot occupation passed in the id
 router.put("/:id/review", function(req, res) {
-  if (!req.body.hasOwnProperty('id') || !req.body.hasOwnProperty('rating') ||
+  if (!req.params.hasOwnProperty('id') || !req.body.hasOwnProperty('rating') ||
      !req.body.hasOwnProperty('comment')) {
     res.status(400).json({error: "Missing expected body parameter."});
     return;
   }
 
-  Reservation.review(req.body.id, req.body.rating, req.body.comment)
+  Reservation.review(req.params.id, req.body.rating, req.body.comment)
     .then(function(reservation) {
       res.status(201).json(reservation);
     }).catch(function(error) {
