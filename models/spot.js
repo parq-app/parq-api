@@ -3,8 +3,9 @@ var GeoHash = require('ngeohash');
 
 var Loc = require('./loc');
 var User = require('./user');
+var Reservation = require('./reservation');
 
-var firebaseRef = new Firebase("https://parq.firebaseio.com/spots");
+var firebaseRef = new Firebase('https://parq.firebaseio.com/spots');
 
 exports.create = function(userId, addr, lat, long, title) {
   var hash = GeoHash.encode(lat, long);
@@ -94,6 +95,26 @@ exports.review = function(spotId, resId, rating, comment) {
   return exports.updateRating(spotId, rating)
     .then(function() {
       return firebaseRef.child(spotId).child("reviews").update(reviewObj);
+    });
+};
+
+/* delete the actual spot along with all associated reservations
+ * This is "permanent" operation in that it removes traces of the spot
+ */
+exports.delete = function(spotId) {
+  return exports.get(spotId)
+    .then(function(spot) {
+      var resIds = [];
+      if (spot.attributes.isReserved) {
+        resIds.push(spot.attributes.reservationId);
+      }
+      resIds.concat(Object.keys(spot.attributes.reviews || []));
+      return Promise.all(resIds.map(function(resId) {
+        return Reservation.delete(resId);
+      }));
+    })
+    .then(function() {
+      return firebaseRef.child(spotId).remove();
     });
 };
 
