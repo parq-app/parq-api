@@ -93,6 +93,12 @@ exports.update = function(id, attrs) {
   if (id === null) {
     return Promise.reject("Null spot ID");
   }
+
+  // There appears to be a weird bug in Volley that randomly inserts a blank key
+  // into your params. This confuses firebase, so delete it if it exists.
+  if (attrs.hasOwnProperty("")) {
+    delete attrs['']; 
+  }
   return usersRef.child(id).update(attrs);
 };
 
