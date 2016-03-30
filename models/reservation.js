@@ -123,6 +123,10 @@ exports.get = function(reservationId) {
     });
 };
 
+exports.delete = function(reservationId) {
+  return reservationsRef.child(reservationId).remove();
+};
+
 exports.ReservationStatusEnum = {
   reserved: 'reserved',
   accepted: 'accepted',
