@@ -39,8 +39,8 @@ router.post('/', function(req, res) {
 
 // Update a user
 router.put('/:id', function(req, res) {
-  User.update(req.params.id, req.body).then(function() {
-    res.status(204).send();
+  User.update(req.params.id, req.body).then(function(user) {
+    res.status(200).json(user);
   }).catch(function(error) {
     res.status(500).json({error: error});
   });

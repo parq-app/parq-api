@@ -99,7 +99,9 @@ exports.update = function(id, attrs) {
   if (attrs.hasOwnProperty("")) {
     delete attrs['']; 
   }
-  return usersRef.child(id).update(attrs);
+  return usersRef.child(id).update(attrs).then(function() {
+    return exports.get(id); 
+  });
 };
 
 function User(email, id, firstName, lastName) {
