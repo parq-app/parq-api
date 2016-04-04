@@ -6,12 +6,12 @@ var locsRef = new Firebase("https://parq.firebaseio.com/locs");
 
 /* Remove the provided loc from the free list */
 exports.removeLoc = function(loc) {
-  return locsRef.child(loc.geohash).remove();
+  return locsRef.child(loc.spotId).remove();
 };
 
 /* Add a new loc to the free list */
 exports.addLoc = function(loc) {
-  return locsRef.child(loc.geohash).set(loc.spotId);
+  return locsRef.child(loc.spotId).set(loc.geohash);
 };
 
 /* Takes in a latlong and list of locs to find nearest spot */
@@ -20,7 +20,7 @@ exports.findNearestLoc = function(currentLatLong, locs) {
   var minDistance = Number.MAX_VALUE;
   for (var key in locs) {
     if (locs.hasOwnProperty(key)) {
-      var tempLoc = {geohash: key, spotId: locs[key]};
+      var tempLoc = {geohash: locs[key], spotId: key};
       var tempLatLong = GeoHash.decode(tempLoc.geohash);
       var tempDistance = GeoLib.getDistance(tempLatLong, currentLatLong);
       if (tempDistance < minDistance) {

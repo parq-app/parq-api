@@ -194,7 +194,7 @@ describe('Reservation', function() {
     it('checks that the reserved loc is in the free list', function(done) {
       Loc.getAllLocs()
         .then(function(locs) {
-          assert(locs.hasOwnProperty(reservation.attributes.geohash));
+          assert(locs.hasOwnProperty(reservation.attributes.spotId));
           done();
         }).catch(function(error) {
           done(error);
