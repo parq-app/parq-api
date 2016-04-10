@@ -54,8 +54,8 @@ exports.addHostSpot = function(userId, spotId) {
   return usersRef.child(userId).child('spots').update(spotObj);
 };
 
-exports.create = function(email, uid, firstName, lastName) {
-  var user = new User(email, uid, firstName, lastName);
+exports.create = function(email, uid, firstName, lastName, profilePhotoId) {
+  var user = new User(email, uid, firstName, lastName, profilePhotoId);
   return usersRef.child(uid).set(user.attributes).then(function() {
     return user; 
   });
@@ -65,7 +65,7 @@ exports.get = function(id) {
   return usersRef.child(id).once("value").then(function(snapshot) {
     var userData = snapshot.val();
     var user = new User(userData.email, snapshot.key(), userData.firstName,
-                        userData.lastName);
+                        userData.lastName, userData.profilePhotoId);
 
     // fix ctor to do this basically
     user.id = snapshot.key();
@@ -100,11 +100,12 @@ exports.update = function(id, attrs) {
   });
 };
 
-function User(email, id, firstName, lastName) {
+function User(email, id, firstName, lastName, profilePhotoId) {
   this.id = id;
   this.attributes = {
     email: email,
     firstName: firstName,
-    lastName: lastName
+    lastName: lastName,
+    profilePhotoId: profilePhotoId
   };
 }
