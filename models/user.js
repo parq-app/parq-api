@@ -54,14 +54,10 @@ exports.addHostSpot = function(userId, spotId) {
   return usersRef.child(userId).child('spots').update(spotObj);
 };
 
-exports.create = function(email, password, firstName, lastName) {
-  var credentials = {email: email, password: password};
-  return usersRef.createUser(credentials).then(function(userId) {
-    var user = new User(email, userId.uid, firstName, lastName);
-
-    return usersRef.child(userId.uid).set(user.attributes).then(function() {
-      return user;
-    });
+exports.create = function(email, uid, firstName, lastName) {
+  var user = new User(email, uid, firstName, lastName);
+  return usersRef.child(uid).set(user.attributes).then(function() {
+    return user; 
   });
 };
 
