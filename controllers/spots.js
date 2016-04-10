@@ -51,4 +51,12 @@ router.put('/rating/:id', function(req, res) {
   }
 });
 
+router.get('/:id/reviews', function(req, res) {
+  Spot.getReviews(req.params.id).then(function(spots) {
+    res.status(200).json(spots);
+  }).catch(function(error) {
+    res.status(500).json({error: error});
+  });
+});
+
 module.exports = router;

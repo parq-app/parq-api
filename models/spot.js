@@ -98,6 +98,13 @@ exports.review = function(spotId, resId, rating, comment) {
     });
 };
 
+exports.getReviews = function(spotId) {
+  return firebaseRef.child(spotId).child("reviews").once("value")
+    .then(function(snapshot) {
+      return snapshot.val();
+    });
+};
+
 /* delete the actual spot along with all associated reservations
  * This is "permanent" operation in that it removes traces of the spot
  */
