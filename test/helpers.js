@@ -66,8 +66,12 @@ exports.removeUsers = function() {
 
 exports.addUserWithName = function(name) {
   var info = users[name];
-  return User.create(info.email, info.password, info.firstName, info.lastName)
-    .catch(function() {});
+  return firebaseRef.createUser({email: info.email, password: info.password})
+    .then(function(cred) {
+      return User.create(
+          info.email, cred.uid, info.firstName, info.lastName, "none"
+      );
+    });
 };
 
 exports.addUsers = function() {
