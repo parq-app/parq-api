@@ -65,8 +65,16 @@ exports.getPastDriverReservations = function(userId) {
       var reservationIds = Object.keys(reservations);
 
       return Promise.all(reservationIds.map(function(resId) {
-        return Reservation.get(resId);       
-      }));
+        return Reservation.get(resId)
+          .then(function(reservation) {
+            // This is extremely jank and I shouldn't be doing it.
+            return Spot.get(reservation.attributes.spotId).then(function(spot) {
+              reservation.attributes['addr'] = spot.attributes.addr;
+              return reservation;
+            }); 
+          });;       
+      }))
+      
     });
 }
 
