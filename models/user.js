@@ -31,6 +31,16 @@ exports.removeReservationFromDriverActive = function(reservation) {
   return exports.removeReservationFromActive(reservation, "driver");
 };
 
+/* Adds the reservation id to the driver's list of past reservations */
+exports.addReservationToDriverPast = function(reservation) {
+  var userId = reservation.attributes.driverId;
+  var resId = reservation.id;
+  var resObject = {};
+  resObject[resId] = resId;
+
+  return usersRef.child(userId).child("pastDriverReservations").update(resObject);
+}
+
 /* Adds the reservation id to both driver and hosts corresponding lists */
 exports.addReservationToActive = function(reservation) {
   var resObj = {};
