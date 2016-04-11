@@ -105,7 +105,8 @@ exports.review = function(reservationId, rating, comment) {
       reservation = res;
       return Promise.all([
         Spot.review(reservation.attributes.spotId, reservationId, rating, comment),
-        User.removeReservationFromDriverActive(reservation)
+        User.removeReservationFromDriverActive(reservation),
+        User.addReservationToDriverPast(reservation)
       ]);
     })
     .then(function() {
