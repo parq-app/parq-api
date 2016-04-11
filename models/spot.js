@@ -101,7 +101,13 @@ exports.review = function(spotId, resId, rating, comment) {
 exports.getReviews = function(spotId) {
   return firebaseRef.child(spotId).child("reviews").once("value")
     .then(function(snapshot) {
-      return snapshot.val();
+      var reviews = snapshot.val();
+      var reviewResIds = Object.keys(reviews);
+      return reviewResIds.map(function(resId) {
+        var review = reviews[resId];
+        review.reservationId = resId;
+        return review;
+      });
     });
 };
 
