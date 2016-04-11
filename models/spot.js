@@ -90,11 +90,10 @@ exports.free = function(spotId) {
 };
 
 exports.review = function(spotId, resId, rating, comment) {
-  var reviewObj = {};
-  reviewObj[resId] = {rating: rating, comment: comment};
+  var reviewObj = {rating: rating, comment: comment};
   return exports.updateRating(spotId, rating)
     .then(function() {
-      return firebaseRef.child(spotId).child("reviews").push(reviewObj);
+      return firebaseRef.child(spotId).child("reviews").child(resId).update(reviewObj);
     });
 };
 
