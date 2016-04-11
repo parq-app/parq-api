@@ -94,7 +94,7 @@ exports.review = function(spotId, resId, rating, comment) {
   reviewObj[resId] = {rating: rating, comment: comment};
   return exports.updateRating(spotId, rating)
     .then(function() {
-      return firebaseRef.child(spotId).child("reviews").update(reviewObj);
+      return firebaseRef.child(spotId).child("reviews").push(reviewObj);
     });
 };
 
