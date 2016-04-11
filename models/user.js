@@ -1,5 +1,6 @@
 var Firebase = require('firebase');
 var Spot = require('./spot');
+var Reservation = require('./reservation');
 
 var usersRef = new Firebase("https://parq.firebaseio.com/users");
 
@@ -56,6 +57,18 @@ exports.addReservationToActive = function(reservation) {
     return reservation;
   });
 };
+
+exports.getPastDriverReservations = function(userId) {
+  return usersRef.child(userId).child("pastDriverReservations").once("value")
+    .then(function(snapshot) {
+      var reservations = snapshot.val();
+      var reservationIds = Object.keys(reservations);
+
+      return Promise.all(reservationIds.map(function(resId) {
+        return Reservation.get(resId);       
+      }));
+    });
+}
 
 exports.addHostSpot = function(userId, spotId) {
   var spotObj = {};
