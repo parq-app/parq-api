@@ -47,4 +47,13 @@ router.put('/:id', function(req, res) {
   });
 });
 
+// Return an array of the user's past reservations
+router.get('/:id/pastDriverReservations', function(req, res) {
+  User.getPastDriverReservations(req.params.id).then(function(reservations) {
+    res.status(200).json(reservations); 
+  }).catch(function(error) {
+    res.status(500).json({error: error}); 
+  });
+});
+
 module.exports = router;

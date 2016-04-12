@@ -15,6 +15,26 @@ var createNewReservation = function(reservation) {
   });
 };
 
+var calculateCost = function(timeStart, timeEnd, rate) {
+  var diffInMillis = timeEnd - timeStart;
+  var diffInHours = diffInMillis / (1000 * 60 * 60);
+
+  return diffInHours * rate ;
+}
+
+var setCost = function(reservation) {
+  return Spot.get(reservation.attributes.spotId).then(function(spot) {
+    var cost = calculateCost(reservation.attributes.timeStart,
+                             reservation.attributes.timeEnd,
+                             spot.attributes.costPerHour);
+
+    return reservationsRef.child(reservation.id).update({cost: cost})
+      .then(function() {
+        return exports.get(reservation.id); 
+      });
+  });
+};
+
 var setTime = function(reservation, timeType) {
   var timeObj = {};
   timeObj[timeType] = Firebase.ServerValue.TIMESTAMP;
@@ -95,6 +115,9 @@ exports.finish = function(reservationId) {
     })
     .then(function() {
       return exports.get(reservationId);
+    })
+    .then(function(reservation) {
+      return setCost(reservation); 
     });
 };
 
@@ -105,7 +128,8 @@ exports.review = function(reservationId, rating, comment) {
       reservation = res;
       return Promise.all([
         Spot.review(reservation.attributes.spotId, reservationId, rating, comment),
-        User.removeReservationFromDriverActive(reservation)
+        User.removeReservationFromDriverActive(reservation),
+        User.addReservationToDriverPast(reservation)
       ]);
     })
     .then(function() {
